@@ -6,6 +6,7 @@ m4_changequote([[, ]])
 
 FROM --platform=${BUILDPLATFORM} docker.io/ubuntu:24.04 AS build
 
+RUN echo "Installing system packages..."
 # Install system packages
 RUN export DEBIAN_FRONTEND=noninteractive \
 	&& apt-get update \
@@ -19,12 +20,14 @@ RUN export DEBIAN_FRONTEND=noninteractive \
 		p7zip-full \
 		qemu-system-x86 \
 		qemu-utils \
+		git \
 	&& rm -rf /var/lib/apt/lists/*
 
 # Download noVNC
 ARG NOVNC_VERSION=v1.6.0
 ARG NOVNC_TARBALL_URL=https://github.com/novnc/noVNC/archive/${NOVNC_VERSION}.tar.gz
 ARG NOVNC_TARBALL_CHECKSUM=5066103959ef4e9b10f37e5a148627360dd8414e4cf8a7db92bdbd022e728aaa
+RUN echo "Downloading noVNC..."
 RUN curl -Lo /tmp/novnc.tgz "${NOVNC_TARBALL_URL:?}"
 RUN printf '%s' "${NOVNC_TARBALL_CHECKSUM:?}  /tmp/novnc.tgz" | sha256sum -c
 RUN mkdir /tmp/novnc/ && tar -xzf /tmp/novnc.tgz --strip-components=1 -C /tmp/novnc/
@@ -33,6 +36,7 @@ RUN mkdir /tmp/novnc/ && tar -xzf /tmp/novnc.tgz --strip-components=1 -C /tmp/no
 ARG WEBSOCKIFY_VERSION=v0.13.0
 ARG WEBSOCKIFY_TARBALL_URL=https://github.com/novnc/websockify/archive/${WEBSOCKIFY_VERSION}.tar.gz
 ARG WEBSOCKIFY_TARBALL_CHECKSUM=b6413e364efd04f3c92ec8c17747e3c4adc20157c2ef1c5d019a26d944a46df8
+RUN echo "Downloading Websockify..."
 RUN curl -Lo /tmp/websockify.tgz "${WEBSOCKIFY_TARBALL_URL:?}"
 RUN printf '%s' "${WEBSOCKIFY_TARBALL_CHECKSUM:?}  /tmp/websockify.tgz" | sha256sum -c
 RUN mkdir /tmp/websockify/ && tar -xzf /tmp/websockify.tgz --strip-components=1 -C /tmp/websockify/
@@ -40,36 +44,52 @@ RUN mkdir /tmp/websockify/ && tar -xzf /tmp/websockify.tgz --strip-components=1 
 # Download and build srvany-ng
 ARG SRVANY_NG_TARBALL_URL=https://github.com/hectorm/srvany-ng/archive/refs/tags/v1.0.tar.gz
 ARG SRVANY_NG_TARBALL_CHECKSUM=62d4c85d5dbef86d57bf5d21ff913bce81b821735df293968e1706f85096c8b0
+RUN echo "Downloading srvany-ng..."
 RUN curl -Lo /tmp/srvany-ng.tgz "${SRVANY_NG_TARBALL_URL:?}"
 RUN printf '%s' "${SRVANY_NG_TARBALL_CHECKSUM:?}  /tmp/srvany-ng.tgz" | sha256sum -c
 RUN mkdir /tmp/srvany-ng/ && tar -xzf /tmp/srvany-ng.tgz --strip-components=1 -C /tmp/srvany-ng/
+RUN echo "Building srvany-ng..."
 RUN make -C /tmp/srvany-ng/ build
 
 # Download and build Netcat
 ARG NETCAT_TARBALL_URL=https://github.com/hectorm/netcat/archive/refs/tags/v1.14.tar.gz
 ARG NETCAT_TARBALL_CHECKSUM=3cf3235a9561e456c97e43c69318f680fd86ab886324992f5655f97e846540dc
+RUN echo "Downloading Netcat..."
 RUN curl -Lo /tmp/netcat.tgz "${NETCAT_TARBALL_URL:?}"
 RUN printf '%s' "${NETCAT_TARBALL_CHECKSUM:?}  /tmp/netcat.tgz" | sha256sum -c
 RUN mkdir /tmp/netcat/ && tar -xzf /tmp/netcat.tgz --strip-components=1 -C /tmp/netcat/
+RUN echo "Building Netcat..."
 RUN make -C /tmp/netcat/ build
 
 # Download and install Windows 2000 Advanced Server
 # Source: https://winworldpc.com/product/windows-nt-2000/final
 ARG WIN2000_ISO_URL=https://winworldpc.com/download/413dc39c-e280-9918-c39a-11c3a4e284a2/from/c3ae6ee2-8099-713d-3411-c3a6e280947e
 ARG WIN2000_ISO_CHECKSUM=d0a7709f387376d64cd6f20a35c4a7ba2e4cb5f46a0a4fbd14209b4dc7a48282
+RUN echo "Downloading Windows 2000 Advanced Server..."
 RUN curl -Lo /tmp/win2000.7z "${WIN2000_ISO_URL:?}"
 RUN printf '%s' "${WIN2000_ISO_CHECKSUM:?}  /tmp/win2000.7z" | sha256sum -c
 RUN 7z e /tmp/win2000.7z -so '*/*.ISO' > /tmp/win2000.iso \
 	&& 7z x /tmp/win2000.iso -o/tmp/win2000/ \
 	&& rm -f /tmp/win2000.iso
 COPY --chown=root:root ./data/iso/ /tmp/win2000/
+
+ARG MSVC6_GIT_URL=https://github.com/itsmattkc/MSVC600
+RUN echo "Downloading MSVC 6.0..."
+RUN git clone --depth=1 "${MSVC6_GIT_URL:?}" /tmp/win2000/SPONGEBUILD/MSVC600
+RUN rm -rf /tmp/win2000/SPONGEBUILD/MSVC600/.git
+
+ARG SUPERSPONGE_GIT_URL=https://github.com/hellfire3d/SBSPSS
+RUN echo "Downloading SuperSponge source code..."
+RUN git clone "${MSVC6_GIT_URL:?}" /tmp/win2000/SPONGEBUILD/SBSPSS
+
 RUN install -D /tmp/srvany-ng/srvany-ng.exe /tmp/win2000/VALUEADD/3RDPARTY/srvany-ng.exe
 RUN install -D /tmp/netcat/nc.exe /tmp/win2000/VALUEADD/3RDPARTY/nc.exe
 RUN sed -ri 's/^(Pid=[0-9]+)[0-9]{3}/\1270/' /tmp/win2000/I386/SETUPP.INI
+RUN tput bel && echo "\n\n========================\n QEMU is about to open. \n========================\nYou must do the following things to have a functional image:\n\t1. Install Windows 2000\n\t2. Copy (ISO)\\SPONGEBUILD to C:\\SPONGEBUILD in its entirety\n\nYou have 90 minutes to do this." && sleep 10
 RUN mkisofs -no-emul-boot -iso-level 4 -eltorito-boot '[BOOT]/Boot-NoEmul.img' -o /tmp/win2000.iso /tmp/win2000/ \
 	&& qemu-img create -f qcow2 /tmp/win2000.qcow2 128G \
 	&& timeout 5400 qemu-system-x86_64 \
-		-machine pc -smp 2 -m 512M -accel tcg \
+		-machine pc -smp 2 -m 1536M -accel tcg \
 		-device cirrus-vga -display none -serial stdio \
 		-device rtl8139,netdev=n0 -netdev user,id=n0,ipv4=on,ipv6=off,net=10.0.2.0/24,host=10.0.2.2,dns=10.0.2.3,dhcpstart=10.0.2.15,restrict=on \
 		-device ide-hd,id=disk0,bus=ide.0,drive=disk0 -blockdev driver=qcow2,node-name=disk0,file.driver=file,file.filename=/tmp/win2000.qcow2 \

@@ -4,6 +4,15 @@ project working to containerize the SuperSponge build process, based on [docker-
 
 aims to give you a Windows 2000 build environment with Visual C++ 6 preinstalled, and the SuperSponge source code optionally preloaded into the image and ready to compile and modify
 
+THIS PROBABLY DOESN'T WORK YET
+
+### build process
+
+make sure you have some variety of the docker CLI (and probably your distro's equivalent to   `base-devel`) installed and properly configured. then run
+```
+make
+```
+eventually a qemu window will open, and you'll need to run through the Windows 2000 installer manually. you'll have 90 minutes to do this
 
 
 
