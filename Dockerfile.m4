@@ -85,9 +85,9 @@ RUN git clone "${MSVC6_GIT_URL:?}" /tmp/win2000/SPONGEBUILD/SBSPSS
 RUN install -D /tmp/srvany-ng/srvany-ng.exe /tmp/win2000/VALUEADD/3RDPARTY/srvany-ng.exe
 RUN install -D /tmp/netcat/nc.exe /tmp/win2000/VALUEADD/3RDPARTY/nc.exe
 RUN sed -ri 's/^(Pid=[0-9]+)[0-9]{3}/\1270/' /tmp/win2000/I386/SETUPP.INI
-RUN tput bel && echo "\n\n========================\n QEMU is about to open. \n========================\nYou must do the following things to have a functional image:\n\t1. Install Windows 2000\n\t2. Copy (ISO)\\SPONGEBUILD to C:\\SPONGEBUILD in its entirety\n\nYou have 90 minutes to do this." && sleep 10
 RUN mkisofs -no-emul-boot -iso-level 4 -eltorito-boot '[BOOT]/Boot-NoEmul.img' -o /tmp/win2000.iso /tmp/win2000/ \
 	&& qemu-img create -f qcow2 /tmp/win2000.qcow2 128G \
+	&& echo "\n\n========================\n QEMU is about to open. \n========================\nYou must do the following things to have a functional image:\n\t1. Install Windows 2000\n\t2. Copy (ISO)\\SPONGEBUILD to C:\\SPONGEBUILD in its entirety\n\nYou have 90 minutes to do this." \
 	&& timeout 5400 qemu-system-x86_64 \
 		-machine pc -smp 2 -m 1536M -accel tcg \
 		-device cirrus-vga -display none -serial stdio \

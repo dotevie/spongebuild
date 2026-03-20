@@ -6,8 +6,8 @@ export LC_ALL=C
 DOCKER=$(command -v docker 2>/dev/null)
 
 IMAGE_REGISTRY=docker.io
-IMAGE_NAMESPACE=hectorm
-IMAGE_PROJECT=qemu-win2000
+IMAGE_NAMESPACE=dotevie
+IMAGE_PROJECT=spongebuild
 IMAGE_TAG=latest
 IMAGE_NAME=${IMAGE_REGISTRY:?}/${IMAGE_NAMESPACE:?}/${IMAGE_PROJECT:?}:${IMAGE_TAG:?}
 CONTAINER_NAME=${IMAGE_PROJECT:?}
@@ -37,7 +37,7 @@ printf '%s\n' "Creating \"${CONTAINER_NAME:?}\" container..."
 	--hostname "${CONTAINER_NAME:?}" \
 	--restart on-failure:3 \
 	--log-opt max-size=32m \
-	--device /dev/kvm \
+	#!--device /dev/kvm \
 	--publish 127.0.0.1:2323:2323/tcp \
 	--publish 127.0.0.1:3389:3389/tcp \
 	--publish 127.0.0.1:5900:5900/tcp \
