@@ -1,3 +1,16 @@
+# spongebuild
+
+project working to containerize the SuperSponge build process, based on [docker-qemu-win2000](https://github.com/hectorm/docker-qemu-win2000)
+
+aims to give you a Windows 2000 build environment with Visual C++ 6 preinstalled, and the SuperSponge source code optionally preloaded into the image and ready to compile and modify
+
+
+
+
+# original readme below
+
+
+
 # Windows 2000 on Docker
 
 A Docker image for Windows 2000 Advanced Server with SP4.
@@ -17,7 +30,7 @@ docker run --detach \
 ```
 
 > [!NOTE]
-> The `--device /dev/kvm` option can only be used on Linux hosts, it can be removed on Windows and macOS hosts at a significant performance penalty.
+> The `--device /dev/kvm` option can only be used on Linux hosts, it can be removed on Winodows and macOS hosts at a significant performance penalty.
 
 The instance can be accessed from:
  * **RDP** (`3389/TCP`), user `Administrator`, password `password`.
